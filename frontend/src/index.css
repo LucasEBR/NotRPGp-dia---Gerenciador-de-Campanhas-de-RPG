@@ -1,0 +1,99 @@
+:root {
+  --cor-fundo: #15131c;
+  --cor-superficie: #211e2b;
+  --cor-texto: #f1eef7;
+  --cor-texto-fraco: #a79fc1;
+  --cor-destaque: #8b5cf6;
+  --cor-perigo: #e5484d;
+  --cor-sucesso: #3fb950;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--cor-superficie);
+  border-bottom: 1px solid #332f45;
+}
+
+.app-content {
+  flex: 1;
+  padding: 1rem;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.cartao {
+  background: var(--cor-superficie);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+button.primario {
+  background: var(--cor-destaque);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+
+button.secundario {
+  background: transparent;
+  color: var(--cor-texto);
+  border: 1px solid #443f5c;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.55rem;
+  border-radius: 8px;
+  border: 1px solid #443f5c;
+  background: #1b1824;
+  color: var(--cor-texto);
+  margin-bottom: 0.5rem;
+}
+
+.grade-opcoes {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.aviso-conflito {
+  background: #3a1d1f;
+  border: 1px solid var(--cor-perigo);
+  color: #ffb4b4;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+/* mobile-first: a partir daqui ganhamos mais espaço em telas largas */
+@media (min-width: 600px) {
+  .app-content { padding: 1.5rem; }
+}

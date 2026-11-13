@@ -8,64 +8,37 @@ A plataforma busca solucionar um problema comum entre jogadores: a dificuldade d
 
 Jogadores de RPG de mesa que enfrentam dificuldades para organizar campanhas e conciliar horários entre os participantes.
 
-## Funcionalidade diferencial: Conflito de Horário
+## Funcionalidades
 
-Por padrão, a grade de disponibilidade de cada jogador está toda livre; o jogador marca apenas os horários em que **não** pode. Quando o mestre tenta marcar uma sessão em um horário com algum jogador indisponível, o sistema bloqueia a marcação na primeira tentativa e mostra quem está em conflito. Se o mestre insistir, a sessão é marcada mesmo assim, ficando sinalizada com um aviso de possível ausência.
+### Gerenciamento de contas
 
-## Stack
+- **Mestre:** pode criar e gerenciar campanhas, organizar personagens e agendar sessões.
+- **Jogador:** pode participar de campanhas e criar fichas de personagens.
 
-- **Frontend:** React + Vite
-- **Backend:** Node.js + Express
-- **Banco de dados:** PostgreSQL (Supabase)
-- **Autenticação:** Supabase Auth (e-mail/senha + login social Google)
+### Gerenciamento de campanhas
 
-Justificativa completa em [`docs/TECNOLOGIAS.md`](docs/TECNOLOGIAS.md).
+- Criação e gerenciamento de campanhas pelo mestre.
+- Geração de QR Code para acesso à campanha.
+- Entrada de jogadores por meio da leitura do QR Code.
+- Criação de fichas de personagens vinculadas às campanhas.
+- Filtragem e gerenciamento dos personagens participantes.
 
-## Estrutura do repositório
+### Agendamento de sessões
 
-```
-notrpgpedia/
-├── backend/        # API Node/Express
-│   ├── sql/         # migrações SQL
-│   └── src/
-├── frontend/       # React + Vite
-│   └── src/
-└── docs/           # documentação do projeto
-    ├── BACKLOG.md       # histórias de usuário
-    ├── CHECKLIST.md     # requisitos x pontos de complexidade
-    ├── DER.md           # modelo de dados
-    ├── TELAS.md         # as 8 telas
-    ├── TECNOLOGIAS.md   # stack justificada
-    └── DEPLOY.md        # passo a passo de publicação
-```
+- O mestre define a data e o horário das sessões.
+- Envio de notificações por e-mail aos jogadores participantes.
+- Identificação de conflitos de horário entre os participantes.
 
-## Rodando localmente
+## Funcionalidade diferencial
 
-```bash
-# Banco (Supabase local ou cloud) — aplicar schema
-cd backend
-cp .env.example .env   # preencher com suas credenciais
-npm install
-npm run migrate
-npm run dev             # API em http://localhost:3333
+**Conflito de Horário:** funcionalidade destinada a identificar incompatibilidades de disponibilidade entre os jogadores, auxiliando o mestre na escolha de datas e horários para as sessões.
 
-# Frontend
-cd ../frontend
-cp .env.example .env    # preencher com suas credenciais
-npm install
-npm run dev              # app em http://localhost:5173
-```
+## Relacionamentos do banco de dados
 
-## Equipe
+- **1:N (Jogador → Personagens):** um jogador pode possuir vários personagens.
+- **N:N (Jogadores ↔ Campanhas):** vários jogadores podem participar de várias campanhas.
 
-| Responsabilidade        | Integrante |
-| ----------------------- | ---------- |
-| Product Owner (PO)      | Mikael     |
-| Front-end               | Gustavo    |
-| Back-end                | Lucas      |
-| Banco de dados / Deploy | Vinícius   |
-
-## Requisitos e pontuação (8/8)
+## Requisitos e pontuação
 
 | Requisito                       | Pontuação |
 | ------------------------------- | --------: |
@@ -77,15 +50,13 @@ npm run dev              # app em http://localhost:5173
 | Exportação de relatórios        |         1 |
 | **Total**                       |   **8/8** |
 
-Status detalhado por requisito e por release em [`docs/CHECKLIST.md`](docs/CHECKLIST.md).
+## Equipe
 
-## Releases
+| Responsabilidade        | Integrante |
+| ----------------------- | ---------- |
+| Product Owner (PO)      | Mikael     |
+| Front-end               | Gustavo    |
+| Back-end                | Lucas      |
+| Banco de dados / Deploy | Vinícius   |
 
-- **Release 1 (concluída):** proposta, backlog, DER, telas, stack — ver `docs/`.
-- **Release 2 (este commit, tag `v0.2`):** schema do banco completo, autenticação (Supabase), CRUD completo de Personagem ponta a ponta (tela → API → banco), regra de Conflito de Horário implementada no backend, layout base navegável, instruções de deploy.
-- **Release 3 (próxima):** CRUD completo de Campanha e Sessão na interface, perfis/autorização lapidados, UI de conflito refinada, filtro/paginação na listagem.
-- **Release 4:** extras restantes (upload de avatar, e-mail real, exportação), tratamento de erros, dados de demonstração.
-
-## Uso de IA
-
-Claude foi usado para: estruturar o backlog e o checklist de requisitos a partir das notas da equipe, modelar o DER, e gerar o scaffold inicial de backend (Express/Postgres/Supabase Auth) e frontend (React) cobrindo as Releases 1 e 2 — incluindo a lógica de conflito de horário. O time revisou as decisões de modelagem (ex.: disponibilidade como entidade própria) e deve validar e testar o código gerado antes da demonstração, sendo capaz de explicar qualquer parte dele.
+---

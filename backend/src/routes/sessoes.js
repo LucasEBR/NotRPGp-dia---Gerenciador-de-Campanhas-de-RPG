@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { query } from "../lib/db.js";
+import { query, pool } from "../lib/db.js";
 import { validate } from "../middleware/validate.js";
 import { requireCampaignMaster, requireCampaignMember } from "../middleware/auth.js";
 import {
@@ -20,14 +20,30 @@ sessoesRouter.put(
     const { campanhaId } = req.params;
     const { itens } = req.body;
 
-    for (const item of itens) {
-      await query(
-        `insert into disponibilidades (usuario_id, campanha_id, dia_semana, hora_inicio, hora_fim, disponivel)
-         values ($1, $2, $3, $4, $5, $6)
-         on conflict (usuario_id, campanha_id, dia_semana, hora_inicio, hora_fim)
-         do update set disponivel = excluded.disponivel`,
-        [req.user.id, campanhaId, item.dia_semana, item.hora_inicio, item.hora_fim, item.disponivel]
+    // Substitui toda a grade do jogador nesta campanha (assim ele também consegue
+    // DESMARCAR uma indisponibilidade). Tudo numa transação: ou grava tudo, ou nada.
+    const client = await pool.connect();
+    try {
+      await client.query("begin");
+      await client.query(
+        "delete from disponibilidades where usuario_id = $1 and campanha_id = $2",
+        [req.user.id, campanhaId]
       );
+      for (const item of itens) {
+        await client.query(
+          `insert into disponibilidades (usuario_id, campanha_id, dia_semana, hora_inicio, hora_fim, disponivel)
+           values ($1, $2, $3, $4, $5, $6)
+           on conflict (usuario_id, campanha_id, dia_semana, hora_inicio, hora_fim)
+           do update set disponivel = excluded.disponivel`,
+          [req.user.id, campanhaId, item.dia_semana, item.hora_inicio, item.hora_fim, item.disponivel]
+        );
+      }
+      await client.query("commit");
+    } catch (err) {
+      await client.query("rollback");
+      throw err;
+    } finally {
+      client.release();
     }
     res.status(204).send();
   }
@@ -122,9 +138,64 @@ sessoesRouter.get(
   requireCampaignMember(),
   async (req, res) => {
     const { rows } = await query(
-      "select * from sessoes where campanha_id = $1 order by data, hora_inicio",
+      `select id, campanha_id, to_char(data, 'YYYY-MM-DD') as data,
+              hora_inicio, hora_fim, marcada_com_conflito, criado_em
+       from sessoes where campanha_id = $1 order by sessoes.data, hora_inicio`,
       [req.params.campanhaId]
     );
     res.json(rows);
+  }
+);
+
+// UPDATE (remarcar) — só o mestre; refaz a checagem de conflito
+sessoesRouter.put(
+  "/:campanhaId/sessoes/:sessaoId",
+  requireCampaignMaster(),
+  validate(criarSessaoSchema),
+  async (req, res) => {
+    const { campanhaId, sessaoId } = req.params;
+    const { data, hora_inicio, hora_fim, forcar_com_conflito } = req.body;
+
+    const conflitos = await buscarConflitos(campanhaId, data, hora_inicio, hora_fim);
+    if (conflitos.length > 0 && !forcar_com_conflito) {
+      return res.status(409).json({
+        error: "Conflito de horário.",
+        jogadores_indisponiveis: conflitos,
+        dica: "Envie forcar_com_conflito=true para marcar mesmo assim.",
+      });
+    }
+
+    const { rows } = await query(
+      `update sessoes
+       set data = $1, hora_inicio = $2, hora_fim = $3, marcada_com_conflito = $4
+       where id = $5 and campanha_id = $6
+       returning *`,
+      [data, hora_inicio, hora_fim, conflitos.length > 0, sessaoId, campanhaId]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Sessão não encontrada." });
+    }
+
+    await query("delete from sessao_conflitos where sessao_id = $1", [sessaoId]);
+    for (const jogador of conflitos) {
+      await query(
+        "insert into sessao_conflitos (sessao_id, usuario_id, motivo) values ($1, $2, 'indisponivel')",
+        [sessaoId, jogador.id]
+      );
+    }
+    res.json(rows[0]);
+  }
+);
+
+// DELETE — só o mestre
+sessoesRouter.delete(
+  "/:campanhaId/sessoes/:sessaoId",
+  requireCampaignMaster(),
+  async (req, res) => {
+    await query("delete from sessoes where id = $1 and campanha_id = $2", [
+      req.params.sessaoId,
+      req.params.campanhaId,
+    ]);
+    res.status(204).send();
   }
 );

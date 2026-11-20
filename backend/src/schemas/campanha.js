@@ -10,3 +10,6 @@ export const criarCampanhaSchema = z.object({
 export const entrarCampanhaSchema = z.object({
   token: z.string().min(1, "Token do QR Code é obrigatório."),
 });
+
+// edição: todos os campos opcionais (envia só o que mudou)
+export const editarCampanhaSchema = criarCampanhaSchema.partial();

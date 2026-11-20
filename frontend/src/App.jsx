@@ -9,12 +9,14 @@ import { DetalheCampanha } from "./pages/DetalheCampanha";
 import { CriarFicha } from "./pages/CriarFicha";
 import { EditarFicha } from "./pages/EditarFicha";
 import { CalendarioConflito } from "./pages/CalendarioConflito";
+import { EntrarCampanha } from "./pages/EntrarCampanha";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/perfil" element={<RotaPrivada><SelecaoPerfil /></RotaPrivada>} />
+      <Route path="/entrar/:token" element={<EntrarCampanha />} />
 
       <Route path="/mestre" element={<RotaPrivada exigePerfil><HomeMestre /></RotaPrivada>} />
       <Route path="/mestre/campanhas/nova" element={<RotaPrivada exigePerfil><CriarCampanha /></RotaPrivada>} />
@@ -25,6 +27,7 @@ export default function App() {
 
       <Route path="/campanhas/:id" element={<RotaPrivada exigePerfil><DetalheCampanha /></RotaPrivada>} />
       <Route path="/campanhas/:id/calendario" element={<RotaPrivada exigePerfil><CalendarioConflito /></RotaPrivada>} />
+      <Route path="/campanhas/:id/editar" element={<RotaPrivada exigePerfil><CriarCampanha /></RotaPrivada>} />
 
       <Route path="/" element={<Navigate to="/perfil" replace />} />
       <Route path="*" element={<Navigate to="/perfil" replace />} />

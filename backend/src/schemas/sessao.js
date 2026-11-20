@@ -21,6 +21,6 @@ export const definirDisponibilidadeSchema = z.object({
         hora_fim: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
         disponivel: z.boolean(),
       })
-    )
-    .min(1),
+    ),
+  // lista vazia é permitida: significa "não tenho nenhuma indisponibilidade"
 });
